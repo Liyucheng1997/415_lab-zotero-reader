@@ -1,0 +1,76 @@
+{
+  "name": "my-zotero",
+  "private": true,
+  "version": "1.0.0",
+  "description": "我的 Zotero：本地文献管理与 PDF 阅读器",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "build": "vite build",
+    "start": "vite build && node --no-warnings server/index.js",
+    "serve": "node --no-warnings server/index.js",
+    "app": "vite build && electron .",
+    "dist": "vite build && electron-builder --win nsis",
+    "dist:dir": "vite build && electron-builder --win dir"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "dependencies": {
+    "@citation-js/core": "^0.9.0",
+    "@citation-js/plugin-bibtex": "^0.9.0",
+    "@citation-js/plugin-csl": "^0.9.0",
+    "@citation-js/plugin-ris": "^0.9.0",
+    "express": "^4.22.3",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0",
+    "lucide-react": "^1.66.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^6.4.5",
+    "zustand": "^5.0.16"
+  },
+  "main": "electron/main.js",
+  "author": "liyuc",
+  "build": {
+    "appId": "com.liyuc.myzotero",
+    "productName": "MyZotero",
+    "executableName": "MyZotero",
+    "copyright": "liyuc",
+    "asar": false,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**",
+      "server/**",
+      "shared/**",
+      "dist/**",
+      "build/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "我的 Zotero",
+      "uninstallDisplayName": "我的 Zotero",
+      "artifactName": "MyZotero-Setup-${version}.${ext}",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}
