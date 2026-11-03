@@ -78,8 +78,7 @@
       {
         "provider": "github",
         "owner": "Liyucheng1997",
-        "repo": "415_lab-zotero-reader",
-        "releaseType": "release"
+        "repo": "415_lab-zotero-reader"
       }
     ]
   }

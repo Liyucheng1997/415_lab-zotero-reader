@@ -14,12 +14,22 @@ if (version) {
 }
 const { version: current } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-let published = false;
-try { execSync(`gh release view v${current}`, { stdio: 'ignore' }); published = true; } catch { /* 尚未发布 */ }
-if (published) fail(`v${current} 已经发布过了，请指定新的版本号：npm run release -- x.y.z`);
+let exists = false;
+try { execSync(`gh release view v${current}`, { stdio: 'ignore' }); exists = true; } catch { /* 尚未发布 */ }
+if (exists) fail(`v${current} 已经发布过了，请指定新的版本号：npm run release -- x.y.z`);
 
-// 上传用有写权限的令牌：优先 GH_TOKEN，否则取 gh 命令行的登录令牌
-const ghToken = process.env.GH_TOKEN || execSync('gh auth token').toString().trim();
+// 版本号和更新说明先提交推送，Release 的标签指向这次提交
+const NOTES = 'build/release-notes.md';
+const hasNotes = fs.existsSync(NOTES) && fs.readFileSync(NOTES, 'utf8').trim();
+run(`git add package.json package-lock.json${hasNotes ? ` ${NOTES}` : ''}`);
+try { execSync('git diff --cached --quiet'); } catch { run(`git commit -m "发布 ${current}"`); }
+run('git push');
+const sha = execSync('git rev-parse HEAD').toString().trim();
+
+// electron-builder 只负责打包（同时生成 latest.yml），由 gh 一次性创建 Release 并上传全部文件：
+// 让 electron-builder 直接上传时，安装包和 blockmap 会各自创建一个 Release，互相冲突
 run('npx vite build');
-run('npx electron-builder --win nsis --publish always', { GH_TOKEN: ghToken });
+run('npx electron-builder --win nsis --publish never');
+const files = [`MyZotero-Setup-${current}.exe`, `MyZotero-Setup-${current}.exe.blockmap`, 'latest.yml'].map((f) => `"release/${f}"`).join(' ');
+run(`gh release create v${current} ${files} --target ${sha} --title "我的 Zotero ${current}" --latest ${hasNotes ? `--notes-file ${NOTES}` : '--notes ""'}`);
 console.log(`\n✓ v${current} 已发布。已安装的软件启动时会提示更新。\n`);

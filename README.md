@@ -17,7 +17,7 @@
 发布新版本：
 
 1. 可选：把这次的更新说明写进 `build/release-notes.md`，会显示在 Release 页面和软件的更新提示里。
-2. 运行 `npm run release -- 1.1.0`：改版本号、打包，并用 `gh` 的登录身份上传安装包和 `latest.yml` 到 GitHub Releases。
+2. 运行 `npm run release -- 1.1.0`：改版本号并提交推送、打包，再用 `gh` 的登录身份创建 Release，上传安装包和 `latest.yml`。
 
 1.0.0 还不带更新功能，需要手动安装一次新版本，之后就能自动更新了。
 
