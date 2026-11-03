@@ -94,7 +94,7 @@ ipcMain.on('mz:theme', (e, dark) => {
 
 // —— 自动更新：从私有 GitHub 仓库的 Releases 检查新版本 ——
 // 只读令牌由发布脚本写入 electron/update-token.txt（不进 git）；没有令牌或开发模式时不检查
-const UPDATE_REPO = { owner: 'Liyucheng1997', repo: 'my-zotero' };
+const UPDATE_REPO = { owner: 'Liyucheng1997', repo: '415_lab-zotero-reader' };
 let updateToken = '';
 try { updateToken = fs.readFileSync(path.join(here, 'update-token.txt'), 'utf8').trim(); } catch { /* 未配置 */ }
 const canUpdate = app.isPackaged && !!updateToken;
