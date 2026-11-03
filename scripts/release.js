@@ -7,11 +7,6 @@ import fs from 'node:fs';
 const run = (cmd, env) => execSync(cmd, { stdio: 'inherit', env: { ...process.env, ...env } });
 const fail = (msg) => { console.error(`\n✗ ${msg}\n`); process.exit(1); };
 
-const TOKEN_FILE = 'electron/update-token.txt';
-if (!fs.existsSync(TOKEN_FILE) || !fs.readFileSync(TOKEN_FILE, 'utf8').trim()) {
-  fail(`缺少 ${TOKEN_FILE}：在 GitHub 创建一个只对 415_lab-zotero-reader 有 Contents 只读权限的 fine-grained token，把它粘贴到这个文件里。没有它，安装后的软件无法检查更新。`);
-}
-
 const version = process.argv[2];
 if (version) {
   if (!/^\d+\.\d+\.\d+$/.test(version)) fail(`版本号格式应为 x.y.z，收到：${version}`);

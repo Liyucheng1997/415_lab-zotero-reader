@@ -92,12 +92,9 @@ ipcMain.on('mz:theme', (e, dark) => {
   w?.setBackgroundColor(dark ? '#000000' : '#f5f5f7');
 });
 
-// —— 自动更新：从私有 GitHub 仓库的 Releases 检查新版本 ——
-// 只读令牌由发布脚本写入 electron/update-token.txt（不进 git）；没有令牌或开发模式时不检查
+// —— 自动更新：从公开 GitHub 仓库的 Releases 检查新版本（开发模式下不检查） ——
 const UPDATE_REPO = { owner: 'Liyucheng1997', repo: '415_lab-zotero-reader' };
-let updateToken = '';
-try { updateToken = fs.readFileSync(path.join(here, 'update-token.txt'), 'utf8').trim(); } catch { /* 未配置 */ }
-const canUpdate = app.isPackaged && !!updateToken;
+const canUpdate = app.isPackaged;
 let updateState = { status: canUpdate ? 'idle' : 'unsupported', current: app.getVersion() };
 
 function setUpdate(patch) {
@@ -116,7 +113,7 @@ function notesText(notes) {
 if (canUpdate) {
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
-  autoUpdater.setFeedURL({ provider: 'github', ...UPDATE_REPO, private: true, token: updateToken });
+  autoUpdater.setFeedURL({ provider: 'github', ...UPDATE_REPO });
   autoUpdater.on('checking-for-update', () => setUpdate({ status: 'checking', error: null }));
   autoUpdater.on('update-available', (i) => setUpdate({ status: 'available', version: i.version, notes: notesText(i.releaseNotes), date: i.releaseDate }));
   autoUpdater.on('update-not-available', () => setUpdate({ status: 'latest' }));
