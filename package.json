@@ -11,7 +11,8 @@
     "serve": "node --no-warnings server/index.js",
     "app": "vite build && electron .",
     "dist": "vite build && electron-builder --win nsis",
-    "dist:dir": "vite build && electron-builder --win dir"
+    "dist:dir": "vite build && electron-builder --win dir",
+    "release": "node scripts/release.js"
   },
   "engines": {
     "node": ">=22.13"
@@ -21,6 +22,7 @@
     "@citation-js/plugin-bibtex": "^0.9.0",
     "@citation-js/plugin-csl": "^0.9.0",
     "@citation-js/plugin-ris": "^0.9.0",
+    "electron-updater": "^6.8.11",
     "express": "^4.22.3",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.10.38"
@@ -71,6 +73,15 @@
       "uninstallDisplayName": "我的 Zotero",
       "artifactName": "MyZotero-Setup-${version}.${ext}",
       "deleteAppDataOnUninstall": false
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Liyucheng1997",
+        "repo": "my-zotero",
+        "private": true,
+        "releaseType": "release"
+      }
+    ]
   }
 }

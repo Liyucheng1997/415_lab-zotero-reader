@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   PanelLeft, PanelRight, MousePointer2, Hand, Highlighter, Underline, StickyNote, Type, SquareDashed, PenLine, Eraser, ChevronUp, ChevronDown,
-  ZoomIn, ZoomOut, Search, X, MoreHorizontal, Copy, Trash2, NotebookPen, RotateCw, RotateCcw, FileDown, FolderOpen, Moon, Columns2, AlignJustify, Languages,
+  ZoomIn, ZoomOut, Search, X, MoreHorizontal, Copy, Trash2, NotebookPen, RotateCw, RotateCcw, FileDown, FolderOpen, Moon, Palette, Columns2, AlignJustify, Languages,
 } from 'lucide-react';
 import { PdfView } from './pdfView.js';
 import ReaderSidebar from './ReaderSidebar.jsx';
 import ContextPane from './ContextPane.jsx';
 import { api } from '../api.js';
-import { useStore } from '../store.js';
+import { useStore, PAGE_BGS } from '../store.js';
 import { showMenu, toast } from '../ui/overlay.jsx';
 import { ANNOTATION_COLORS } from '../../shared/schema.js';
 import { debounce, local, saveLocal } from '../lib/util.js';
@@ -255,6 +255,15 @@ export default function Reader({ attachmentId, active }) {
   useEffect(() => { viewRef.current?.setAnnotations(anns, selId); }, [anns, selId]);
   useEffect(() => { viewRef.current?.setTool(tool, color); if (tool !== 'select') { setSelPopup(null); } }, [tool, color]);
   useEffect(() => { containerRef.current?.classList.toggle('pdf-dark', !!pdfDark); }, [pdfDark]);
+  // 页面背景色：深色页面（反色）时不着色
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const tint = !pdfDark && prefs.pageBg && prefs.pageBg.toLowerCase() !== '#ffffff';
+    el.classList.toggle('paper-tint', !!tint);
+    if (tint) el.style.setProperty('--page-bg-color', prefs.pageBg);
+    else el.style.removeProperty('--page-bg-color');
+  }, [pdfDark, prefs.pageBg]);
   useEffect(() => { saveLocal('annColor', color); }, [color]);
   useEffect(() => { saveLocal('readerSidebar', sidebar); }, [sidebar]);
   useEffect(() => { saveLocal('readerCtx', ctxOpen); }, [ctxOpen]);
@@ -316,6 +325,7 @@ export default function Reader({ attachmentId, active }) {
     { label: '横向滚动', onClick: () => v.setScrollMode(1) },
     { label: '平铺', onClick: () => v.setScrollMode(2) },
     '-',
+    { label: '页面背景色', icon: Palette, submenu: PAGE_BGS.map((b) => ({ label: b.name, swatch: b.color, checked: !pdfDark && prefs.pageBg === b.color, onClick: () => { setDarkPdf(false); useStore.getState().setPrefs({ pageBg: b.color }); } })) },
     { label: '深色页面', icon: Moon, checked: !!pdfDark, onClick: () => setDarkPdf(!pdfDark) },
     '-',
     { label: '导出带注释的 PDF', icon: FileDown, onClick: () => { location.href = `/api/items/${attachmentId}/export-pdf`; } },

@@ -4,6 +4,7 @@ import { useStore, getItem } from './store.js';
 import { OverlayHost, openDialog, showMenu } from './ui/overlay.jsx';
 import LibraryView from './library/LibraryView.jsx';
 import { itemTitle } from './lib/util.js';
+import { initUpdater, UpdateButton } from './update.jsx';
 
 const Reader = lazy(() => import('./reader/Reader.jsx'));
 
@@ -65,6 +66,7 @@ function Titlebar() {
         </div>
       </div>
       <TabBar />
+      <UpdateButton />
       <button className="tb-round" title="外观" onClick={(e) => showMenu(e, [
         { label: '跟随系统', icon: MonitorCog, checked: theme === 'system', onClick: () => setTheme('system') },
         { label: '浅色', icon: Sun, checked: theme === 'light', onClick: () => setTheme('light') },
@@ -80,7 +82,7 @@ export default function App() {
   const error = useStore((s) => s.error);
   const tabs = useStore((s) => s.tabs);
   const active = useStore((s) => s.activeTab);
-  useEffect(() => { useStore.getState().load(); }, []);
+  useEffect(() => { useStore.getState().load(); initUpdater(); }, []);
   useEffect(() => {
     const key = (e) => {
       const s = useStore.getState();

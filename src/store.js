@@ -20,6 +20,7 @@ export const DEFAULT_PREFS = {
   quickCopyStyle: 'apa',
   citeLang: 'en-US',
   pdfDark: false,
+  pageBg: '#ffffff',
   autoRecognize: true,
   showAutoTags: true,
   tagDisplayAll: false,
@@ -27,9 +28,21 @@ export const DEFAULT_PREFS = {
   translateFrom: 'auto',
   autoTranslate: true,
   translateIntoComment: false,
+  autoUpdate: true,
+  skipVersion: null,
 };
 
-const restoredTabs = local('tabs', []);
+// 阅读器页面背景色（白色即不着色）
+export const PAGE_BGS = [
+  { name: '白色', color: '#ffffff' },
+  { name: '护眼绿', color: '#c7edcc' },
+  { name: '羊皮纸', color: '#f4ecd8' },
+  { name: '浅灰', color: '#e9e9eb' },
+  { name: '淡蓝', color: '#dde9f6' },
+  { name: '淡粉', color: '#f7e4e4' },
+];
+
+const restoredTabs =local('tabs', []);
 
 export const useStore = create((set, get) => ({
   loaded: false,

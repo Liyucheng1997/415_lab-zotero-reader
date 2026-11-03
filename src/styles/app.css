@@ -49,6 +49,12 @@ kbd { font-family: var(--font); font-size: 11px; color: var(--text-3); backgroun
 .tb-round { width: 34px; height: 34px; border: 0; border-radius: 50%; background: var(--panel); box-shadow: var(--shadow-card); color: var(--text-2); display: flex; align-items: center; justify-content: center; transition: box-shadow .2s, color .15s, transform .15s; flex: none; }
 .tb-round:hover { box-shadow: var(--shadow-lift); color: var(--text); }
 .tb-round:active { transform: scale(.94); }
+.tb-update { height: 30px; padding: 0 14px 0 11px; border: 0; border-radius: 99px; background: var(--primary); color: #fff; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; flex: none; font-variant-numeric: tabular-nums; animation: popIn .25s var(--spring); transition: background .15s, transform .15s; }
+.tb-update:hover { background: var(--primary-hover); }
+.tb-update:active { transform: scale(.96); }
+.update-notes { margin-top: 12px; max-height: 260px; overflow: auto; padding: 12px 14px; border-radius: var(--r); background: var(--panel-2); font-size: 13px; line-height: 1.65; white-space: pre-wrap; color: var(--text-2); }
+.update-progress { height: 6px; margin: 14px 0 8px; border-radius: 99px; background: var(--fill); overflow: hidden; }
+.update-progress > div { height: 100%; border-radius: inherit; background: var(--primary); transition: width .3s var(--ease-out); }
 
 /* —— 文库三栏 —— */
 .library { flex: 1; min-height: 0; display: flex; padding: 0 12px 12px 0; }
@@ -234,6 +240,17 @@ kbd { font-family: var(--font); font-size: 11px; color: var(--text-3); backgroun
 .viewer-container .pdfViewer { padding: 14px 0 40px; }
 .viewer-container .pdfViewer .page { border: 0 !important; margin: 0 auto 14px !important; box-shadow: 0 14px 40px -18px rgba(0, 0, 0, .28), 0 0 0 1px rgba(0, 0, 0, .04); border-radius: 3px; overflow: hidden; background-clip: content-box; }
 .viewer-container.pdf-dark .pdfViewer .page .canvasWrapper { filter: invert(.92) hue-rotate(180deg) brightness(.95); }
+/* 页面背景色：白底与 --page-bg-color 正片叠底，文字与图片保持原色 */
+.viewer-container.paper-tint .pdfViewer .page .canvasWrapper canvas { mix-blend-mode: multiply; }
+.menu-icon .dot { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15); }
+.bg-swatches { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.bg-swatch { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px 0 6px; border: 0; border-radius: 99px; background: var(--fill); color: var(--text-2); font-size: 12px; font-weight: 500; transition: background .15s, color .15s; }
+.bg-swatch:hover { color: var(--text); }
+.bg-swatch .c { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15); }
+.bg-swatch.active { background: var(--primary-soft); color: var(--primary); }
+.bg-swatch.active .c { box-shadow: 0 0 0 2px var(--panel), 0 0 0 3.5px var(--primary); }
+.bg-swatch.custom { position: relative; cursor: pointer; }
+.bg-swatch.custom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .viewer-container .textLayer ::selection { background: rgba(0, 113, 227, .3); }
 .viewer-container.tool-hand .textLayer { cursor: grab; }
 .viewer-container.tool-hand.dragging .textLayer { cursor: grabbing; }

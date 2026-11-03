@@ -10,6 +10,18 @@
 - 重新打包：`npm run dist`（生成安装包），`npm run dist:dir`（只生成 `release/win-unpacked`）
 - 开发时直接以窗口运行：`npm run app`（使用项目里的 `data/`）
 
+### 自动更新
+
+安装版启动时会检查 GitHub Releases 上有没有新版本，有就弹窗提示，可以下载后一键重启安装（在「设置 → 通用 → 软件更新」里能手动检查，也能关掉自动检查）。
+
+发布新版本：
+
+1. 一次性准备：在 GitHub 创建一个 fine-grained token，只授权 `my-zotero` 仓库的 **Contents: Read-only**，把它粘贴到 `electron/update-token.txt`（已被 git 忽略）。它会被打包进安装包，供软件读取私有仓库的 Releases，所以不要给它更多权限。
+2. 可选：把这次的更新说明写进 `build/release-notes.md`，会显示在 Release 页面和软件的更新提示里。
+3. 运行 `npm run release -- 1.1.0`：改版本号、打包，并用 `gh` 的登录身份上传安装包和 `latest.yml` 到 GitHub Releases。
+
+1.0.0 还不带更新功能，需要手动安装一次新版本，之后就能自动更新了。
+
 ## 浏览器版
 
 ```bash

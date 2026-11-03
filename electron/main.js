@@ -3,7 +3,9 @@ import { app, BrowserWindow, shell, ipcMain, Menu, nativeTheme } from 'electron'
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import updaterPkg from 'electron-updater';
 
+const { autoUpdater } = updaterPkg;
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(here, '..');
 const DESKTOP_PORT = 5418; // 固定端口：localStorage 按端口区分，换端口会丢失界面设置
@@ -89,6 +91,49 @@ ipcMain.on('mz:theme', (e, dark) => {
   try { w?.setTitleBarOverlay(THEMES[dark ? 'dark' : 'light']); } catch { /* 无覆盖层的窗口 */ }
   w?.setBackgroundColor(dark ? '#000000' : '#f5f5f7');
 });
+
+// —— 自动更新：从私有 GitHub 仓库的 Releases 检查新版本 ——
+// 只读令牌由发布脚本写入 electron/update-token.txt（不进 git）；没有令牌或开发模式时不检查
+const UPDATE_REPO = { owner: 'Liyucheng1997', repo: 'my-zotero' };
+let updateToken = '';
+try { updateToken = fs.readFileSync(path.join(here, 'update-token.txt'), 'utf8').trim(); } catch { /* 未配置 */ }
+const canUpdate = app.isPackaged && !!updateToken;
+let updateState = { status: canUpdate ? 'idle' : 'unsupported', current: app.getVersion() };
+
+function setUpdate(patch) {
+  updateState = { ...updateState, ...patch };
+  win?.webContents.send('mz:update', updateState);
+}
+// 更新说明可能是 HTML、Markdown 或按版本分段的数组，统一转成纯文本
+function notesText(notes) {
+  if (Array.isArray(notes)) notes = notes.map((n) => n.note || '').join('\n\n');
+  return String(notes || '')
+    .replace(/<br\s*\/?>/gi, '\n').replace(/<li[^>]*>/gi, '• ').replace(/<\/(p|li|h\d)>/gi, '\n').replace(/<[^>]+>/g, '')
+    .replace(/^#{1,6}\s+/gm, '').replace(/^\s*[-*]\s+/gm, '• ').replace(/\*\*(.+?)\*\*/g, '$1').replace(/`([^`]+)`/g, '$1')
+    .replace(/\n{3,}/g, '\n\n').trim();
+}
+
+if (canUpdate) {
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.setFeedURL({ provider: 'github', ...UPDATE_REPO, private: true, token: updateToken });
+  autoUpdater.on('checking-for-update', () => setUpdate({ status: 'checking', error: null }));
+  autoUpdater.on('update-available', (i) => setUpdate({ status: 'available', version: i.version, notes: notesText(i.releaseNotes), date: i.releaseDate }));
+  autoUpdater.on('update-not-available', () => setUpdate({ status: 'latest' }));
+  autoUpdater.on('download-progress', (p) => setUpdate({ status: 'downloading', percent: Math.floor(p.percent) }));
+  autoUpdater.on('update-downloaded', (i) => setUpdate({ status: 'downloaded', version: i.version }));
+  autoUpdater.on('error', (e) => setUpdate({ status: 'error', error: String(e?.message || e).split('\n')[0] }));
+}
+
+ipcMain.handle('mz:update-state', () => updateState);
+ipcMain.handle('mz:update-check', () => { if (canUpdate) autoUpdater.checkForUpdates().catch(() => { /* 已通过 error 事件上报 */ }); });
+ipcMain.handle('mz:update-download', () => {
+  if (!canUpdate) return;
+  setUpdate({ status: 'downloading', percent: 0 });
+  autoUpdater.downloadUpdate().catch(() => { /* 已通过 error 事件上报 */ });
+});
+// 静默安装到原目录，完成后自动重新打开
+ipcMain.handle('mz:update-install', () => { if (canUpdate) autoUpdater.quitAndInstall(true, true); });
 
 app.on('second-instance', () => {
   if (win) { if (win.isMinimized()) win.restore(); win.focus(); }

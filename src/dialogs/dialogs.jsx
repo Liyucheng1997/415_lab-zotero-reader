@@ -7,9 +7,10 @@ import { addByIdentifier } from '../actions.js';
 import { copyRich, download, itemTitle, creatorSummary, yearOf, isRegular, fmtDateTime } from '../lib/util.js';
 import { SEARCH_FIELDS, opsFor, evalSearch } from '../lib/search.js';
 import { ITEM_TYPES, REGULAR_TYPES } from '../../shared/schema.js';
-import { collectionPath } from '../store.js';
+import { collectionPath, PAGE_BGS } from '../store.js';
 import { TypeIcon } from '../library/icons.jsx';
 import { LanguageSelect, TranslationBox } from '../lib/translate.jsx';
+import { useUpdate, checkForUpdates, openUpdateDialog } from '../update.jsx';
 
 // —— 通过标识符添加 ——
 export function IdentifierDialog({ close }) {
@@ -274,6 +275,36 @@ export function ItemPicker({ close, title = '选择条目', exclude = [] }) {
 }
 
 // —— 设置 ——
+const UPDATE_STATUS = {
+  checking: '正在检查更新…',
+  latest: '已是最新版本',
+  available: (u) => `发现新版本 v${u.version}`,
+  downloading: (u) => `正在下载 v${u.version}（${u.percent || 0}%）`,
+  downloaded: (u) => `v${u.version} 已下载，重启软件即可完成更新`,
+  error: (u) => `检查更新失败：${u.error}`,
+};
+function UpdateSettings({ prefs, setPrefs }) {
+  const u = useUpdate();
+  const s = UPDATE_STATUS[u.status];
+  return (
+    <div className="setting-block">
+      <div className="setting-title">软件更新</div>
+      {u.status === 'unsupported' ? (
+        <div className="setting-desc">只有安装版（桌面版）支持检查更新；浏览器版和开发模式下请用 git 拉取最新代码。</div>
+      ) : <>
+        <div className="row-flex">
+          <span className="setting-desc">当前版本 v{u.current}{s ? `　·　${typeof s === 'function' ? s(u) : s}` : ''}</span>
+          <span style={{ flex: 1 }} />
+          {['available', 'downloading', 'downloaded'].includes(u.status)
+            ? <button className="btn btn-sm btn-primary" onClick={openUpdateDialog}>查看更新</button>
+            : <button className="btn btn-sm" disabled={u.status === 'checking'} onClick={() => checkForUpdates()}>{u.status === 'checking' ? <Loader2 size={13} className="spin" /> : null}检查更新</button>}
+        </div>
+        <label className="form-check"><input type="checkbox" checked={prefs.autoUpdate} onChange={(e) => setPrefs({ autoUpdate: e.target.checked })} />启动时自动检查更新</label>
+      </>}
+    </div>
+  );
+}
+
 export function SettingsDialog({ close }) {
   const prefs = useStore((s) => s.prefs);
   const theme = useStore((s) => s.theme);
@@ -302,10 +333,26 @@ export function SettingsDialog({ close }) {
           <label className="form-check"><input type="checkbox" checked={prefs.pdfDark} onChange={(e) => setPrefs({ pdfDark: e.target.checked })} />深色模式下反转 PDF 页面颜色</label>
         </div>
         <div className="setting-block">
+          <div className="setting-title">阅读背景色</div>
+          <div className="setting-desc">PDF 页面的纸张颜色，文字和图片保持原色。也可在阅读器右上角「更多」菜单中切换。</div>
+          <div className="bg-swatches">
+            {PAGE_BGS.map((b) => (
+              <button key={b.color} className={`bg-swatch${prefs.pageBg === b.color ? ' active' : ''}`} onClick={() => setPrefs({ pageBg: b.color })}>
+                <span className="c" style={{ background: b.color }} />{b.name}
+              </button>
+            ))}
+            <label className={`bg-swatch custom${PAGE_BGS.some((b) => b.color === prefs.pageBg) ? '' : ' active'}`}>
+              <span className="c" style={{ background: prefs.pageBg }} />自定义
+              <input type="color" value={prefs.pageBg} onChange={(e) => setPrefs({ pageBg: e.target.value })} />
+            </label>
+          </div>
+        </div>
+        <div className="setting-block">
           <div className="setting-title">文库</div>
           <label className="form-check"><input type="checkbox" checked={prefs.includeSubcollections} onChange={(e) => setPrefs({ includeSubcollections: e.target.checked })} />在分类中显示子分类的条目</label>
           <label className="form-check"><input type="checkbox" checked={prefs.autoRecognize} onChange={(e) => setPrefs({ autoRecognize: e.target.checked })} />导入 PDF 时自动识别元数据并创建父条目</label>
         </div>
+        <UpdateSettings prefs={prefs} setPrefs={setPrefs} />
         <div className="setting-block">
           <div className="setting-title">快捷键</div>
           <div className="setting-desc" style={{ lineHeight: 2 }}>
