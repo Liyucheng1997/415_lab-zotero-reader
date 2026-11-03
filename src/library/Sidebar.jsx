@@ -47,16 +47,23 @@ export default function Sidebar() {
   const counts = useMemo(() => {
     const s = useStore.getState();
     const m = new Map();
+    const deep = new Map(); // 含所有子分类的条目数（去重），折叠时显示
+    const parentOf = new Map(collections.map((c) => [c.id, c.parentId]));
     let lib = 0, unfiled = 0, trash = 0;
     for (const it of Object.values(s.items)) {
       if (it.deleted) { if (!it.parentId || !s.items[it.parentId]?.deleted) trash++; continue; }
       if (it.parentId) continue;
       lib++;
       if (!it.collections.length) unfiled++;
-      for (const c of it.collections) m.set(c, (m.get(c) || 0) + 1);
+      const seen = new Set();
+      for (const c of it.collections) {
+        m.set(c, (m.get(c) || 0) + 1);
+        for (let p = c; p != null && !seen.has(p); p = parentOf.get(p)) seen.add(p);
+      }
+      for (const p of seen) deep.set(p, (deep.get(p) || 0) + 1);
     }
-    return { m, lib, unfiled, trash, dups: duplicateGroups(s).length };
-  }, [version]);
+    return { m, deep, lib, unfiled, trash, dups: duplicateGroups(s).length };
+  }, [version, collections]);
 
   const byParent = useMemo(() => {
     const m = new Map();
@@ -81,7 +88,7 @@ export default function Sidebar() {
           depth={depth}
           twisty={kids}
           open={open}
-          count={counts.m.get(c.id)}
+          count={(open ? counts.m : counts.deep).get(c.id)}
           onTwisty={() => setCollapsed(c.id, open)}
           active={view.type === 'collection' && view.id === c.id}
           onClick={() => setView({ type: 'collection', id: c.id })}
