@@ -1,7 +1,7 @@
 {
   "name": "my-zotero",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "我的 Zotero：本地文献管理与 PDF 阅读器",
   "type": "module",
   "scripts": {
